@@ -1,126 +1,108 @@
-const calculator = {
-    displayValue: '0',
-    firstOperand: null,
-    waitingForSecondOperand: false,
-    operator: null,
-};
+const display = document.getElementById('display');
+const buttons = document.querySelectorAll('.buttons button, .equals, .clear');
 
-function updateDisplay() {
-    const display = document.querySelector('.calculator-screen');
-    display.value = calculator.displayValue;
+function append(value) {
+    if (display.value === 'Error') display.value = '';
+    display.value += value;
 }
 
-updateDisplay();
+function clearDisplay() {
+    display.value = '';
+}
 
-const keys = document.querySelector('.calculator-keys');
-keys.addEventListener('click', (event) => {
-    const { target } = event;
-    const { value } = target;
-    if (!target.matches('button')) {
-        return;
+function calculate() {
+    try {
+        // Replace × and ÷ with * and /
+        let expr = display.value.replace(/×/g, '*').replace(/÷/g, '/');
+        display.value = eval(expr);
+    } catch {
+        display.value = 'Error';
     }
+}
 
-    switch (value) {
-        case '+':
-        case '-':
-        case '*':
-        case '/':
-        case '=':
-            handleOperator(value);
-            break;
-        case '.':
-            inputDecimal(value);
-            break;
-        case 'all-clear':
-            resetCalculator();
-            break;
-        default:
-            if (Number.isInteger(parseFloat(value))) {
-                inputDigit(value);
-            }
-    }
-
-    updateDisplay();
+// Button click events
+buttons.forEach(btn => {
+    btn.addEventListener('click', e => {
+        const value = btn.getAttribute('data-value');
+        if (btn.classList.contains('number') || btn.classList.contains('operator')) {
+            append(value);
+        } else if (btn.classList.contains('clear')) {
+            clearDisplay();
+        } else if (btn.classList.contains('equals')) {
+            calculate();
+        }
+    });
 });
 
+// Keyboard support
 document.addEventListener('keydown', (event) => {
-    const { key } = event;
-    if (key >= 0 && key <= 9) {
-        inputDigit(key);
-    } else if (key === '.') {
-        inputDecimal(key);
-    } else if (key === '+' || key === '-' || key === '*' || key === '/') {
-        handleOperator(key);
+    const key = event.key;
+    if (/^[0-9+\-*/.]$/.test(key)) {
+        append(key);
     } else if (key === 'Enter' || key === '=') {
-        handleOperator('=');
+        calculate();
+    } else if (key === 'Backspace') {
+        display.value = display.value.slice(0, -1);
     } else if (key === 'Escape') {
-        resetCalculator();
+        clearDisplay();
     }
-
-    updateDisplay();
 });
 
-function inputDigit(digit) {
-    const { displayValue, waitingForSecondOperand } = calculator;
+// Custom cursor effect
+const cursor = document.querySelector('.custom-cursor');
+document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+});
+document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+        cursor.style.transform = 'translate(-50%, -50%) scale(1.2)';
+        cursor.style.background = 'rgba(255,255,255,0.35)';
+        cursor.style.borderColor = '#ffb347';
+        cursor.style.boxShadow = '0 0 24px #ffb347, 0 0 8px #fff';
+    });
+    btn.addEventListener('mouseleave', () => {
+        cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+        cursor.style.background = 'rgba(255,255,255,0.18)';
+        cursor.style.borderColor = '#43cea2';
+        cursor.style.boxShadow = '0 0 16px #43cea2, 0 0 4px #fff';
+    });
+});
 
-    if (waitingForSecondOperand === true) {
-        calculator.displayValue = digit;
-        calculator.waitingForSecondOperand = false;
-    } else {
-        calculator.displayValue = displayValue === '0' ? digit : displayValue + digit;
-    }
-}
+// Ripple effect for buttons
+document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        const circle = document.createElement('span');
+        circle.classList.add('ripple');
+        const rect = btn.getBoundingClientRect();
+        circle.style.left = (e.clientX - rect.left) + 'px';
+        circle.style.top = (e.clientY - rect.top) + 'px';
+        btn.appendChild(circle);
+        setTimeout(() => circle.remove(), 600);
+    });
+});
 
-function inputDecimal(dot) {
-    if (calculator.waitingForSecondOperand === true) {
-        calculator.displayValue = '0.';
-        calculator.waitingForSecondOperand = false;
-        return;
-    }
+// Audio elements
+const bgMusic = document.getElementById('bg-music');
+const clickSound = document.getElementById('click-sound');
 
-    if (!calculator.displayValue.includes(dot)) {
-        calculator.displayValue += dot;
-    }
-}
+// Ensure background music plays (handle browser autoplay restrictions)
+window.addEventListener('DOMContentLoaded', () => {
+    bgMusic.volume = 0.25;
+    bgMusic.play().catch(() => {
+        // Play on first user interaction if blocked
+        const resumeAudio = () => {
+            bgMusic.play();
+            document.removeEventListener('click', resumeAudio);
+        };
+        document.addEventListener('click', resumeAudio);
+    });
+});
 
-function handleOperator(nextOperator) {
-    const { firstOperand, displayValue, operator } = calculator;
-    const inputValue = parseFloat(displayValue);
-
-    if (operator && calculator.waitingForSecondOperand) {
-        calculator.operator = nextOperator;
-        return;
-    }
-
-    if (firstOperand == null) {
-        calculator.firstOperand = inputValue;
-    } else if (operator) {
-        const currentValue = firstOperand || 0;
-        const result = performCalculation[operator](currentValue, inputValue);
-
-        calculator.displayValue = String(result);
-        calculator.firstOperand = result;
-    }
-
-    calculator.waitingForSecondOperand = true;
-    calculator.operator = nextOperator;
-}
-
-const performCalculation = {
-    '/': (firstOperand, secondOperand) => firstOperand / secondOperand,
-
-    '*': (firstOperand, secondOperand) => firstOperand * secondOperand,
-
-    '+': (firstOperand, secondOperand) => firstOperand + secondOperand,
-
-    '-': (firstOperand, secondOperand) => firstOperand - secondOperand,
-
-    '=': (firstOperand, secondOperand) => secondOperand
-};
-
-function resetCalculator() {
-    calculator.displayValue = '0';
-    calculator.firstOperand = null;
-    calculator.waitingForSecondOperand = false;
-    calculator.operator = null;
-}
+// Play click sound on button press
+document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        clickSound.currentTime = 0;
+        clickSound.play();
+    });
+});

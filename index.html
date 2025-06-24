@@ -3,67 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Improved Calculator</title>
+    <title>Best Web Calculator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="calculator">
+    <div class="custom-cursor"></div>
+    <audio id="bg-music" src="background.mp3" loop autoplay></audio>
+    <audio id="click-sound" src="click.mp3"></audio>
+    <div class="calculator glass">
         <input type="text" class="display" id="display" disabled>
         <div class="buttons">
-            <button class="operator" onclick="append('+')">+</button>
-            <button class="operator" onclick="append('-')">-</button>
-            <button class="operator" onclick="append('*')">×</button>
-            <button class="operator" onclick="append('/')">÷</button>
-
-            <button class="number" onclick="append('7')">7</button>
-            <button class="number" onclick="append('8')">8</button>
-            <button class="number" onclick="append('9')">9</button>
-            <button class="number" onclick="append('4')">4</button>
-
-            <button class="number" onclick="append('5')">5</button>
-            <button class="number" onclick="append('6')">6</button>
-            <button class="number" onclick="append('1')">1</button>
-            <button class="number" onclick="append('2')">2</button>
-
-            <button class="number" onclick="append('3')">3</button>
-            <button class="number" onclick="append('0')">0</button>
-            <button class="number" onclick="append('.')">.</button>
-            <button class="clear" onclick="clearDisplay()">AC</button>
+            <button class="operator" data-value="+">+</button>
+            <button class="operator" data-value="-">-</button>
+            <button class="operator" data-value="*">×</button>
+            <button class="operator" data-value="/">÷</button>
+            <button class="number" data-value="7">7</button>
+            <button class="number" data-value="8">8</button>
+            <button class="number" data-value="9">9</button>
+            <button class="number" data-value="4">4</button>
+            <button class="number" data-value="5">5</button>
+            <button class="number" data-value="6">6</button>
+            <button class="number" data-value="1">1</button>
+            <button class="number" data-value="2">2</button>
+            <button class="number" data-value="3">3</button>
+            <button class="number" data-value="0">0</button>
+            <button class="number" data-value=".">.</button>
+            <button class="clear" id="clear">AC</button>
         </div>
-        <button class="equals" onclick="calculate()">=</button>
+        <button class="equals" id="equals">=</button>
     </div>
     <footer>© 2025 Powered by Mr. Aayush Bhandari</footer>
-    <script>
-        const display = document.getElementById('display');
-
-        function append(value) {
-            display.value += value;
-        }
-
-        function clearDisplay() {
-            display.value = '';
-        }
-
-        function calculate() {
-            try {
-                display.value = eval(display.value);
-            } catch (error) {
-                display.value = 'Error';
-            }
-        }
-
-        document.addEventListener('keydown', (event) => {
-            const key = event.key;
-            if (/^[0-9.+\-*/]$/.test(key)) {
-                append(key);
-            } else if (key === 'Enter') {
-                calculate();
-            } else if (key === 'Backspace') {
-                display.value = display.value.slice(0, -1);
-            } else if (key === 'Escape') {
-                clearDisplay();
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
